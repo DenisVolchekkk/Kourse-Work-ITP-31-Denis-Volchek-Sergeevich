@@ -11,13 +11,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B1873A51-1097-4B70-B66B-330AD379BA8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Universaty.Domain", "Universaty.Domain\Universaty.Domain.csproj", "{91EF4C50-630D-40E1-904A-B21827C9712B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Universaty.Domain", "Universaty.Domain\Universaty.Domain.csproj", "{91EF4C50-630D-40E1-904A-B21827C9712B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Univesaty.Application", "Univesaty.Application\Univesaty.Application.csproj", "{72CD4A23-3D3E-4BBE-85E3-1B6B964E3B2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Univesaty.Application", "Univesaty.Application\Univesaty.Application.csproj", "{72CD4A23-3D3E-4BBE-85E3-1B6B964E3B2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Universaty.Persisrence", "Universaty.Persisrence\Universaty.Persisrence.csproj", "{88952369-987E-431B-9EBC-31D86C843D2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Universaty.Persisrence", "Universaty.Persisrence\Universaty.Persisrence.csproj", "{88952369-987E-431B-9EBC-31D86C843D2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Universaty", "Universaty\Universaty.csproj", "{D878440C-A860-4984-8B2E-C7E17913264F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Universaty", "Universaty\Universaty.csproj", "{D878440C-A860-4984-8B2E-C7E17913264F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "laba2", "laba2\laba2.csproj", "{BA705E2E-6776-4BB4-A91B-24FD0544FEA9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MiddleWare", "MiddleWare", "{51F30206-C894-4463-B5B9-4BEBCEE974CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiddleWareLib", "MiddleWareLib\MiddleWareLib.csproj", "{C7C21F7E-8393-48C0-840D-FE1D6EECED9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +47,14 @@ Global
 		{D878440C-A860-4984-8B2E-C7E17913264F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D878440C-A860-4984-8B2E-C7E17913264F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D878440C-A860-4984-8B2E-C7E17913264F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA705E2E-6776-4BB4-A91B-24FD0544FEA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA705E2E-6776-4BB4-A91B-24FD0544FEA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA705E2E-6776-4BB4-A91B-24FD0544FEA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA705E2E-6776-4BB4-A91B-24FD0544FEA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7C21F7E-8393-48C0-840D-FE1D6EECED9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C21F7E-8393-48C0-840D-FE1D6EECED9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C21F7E-8393-48C0-840D-FE1D6EECED9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C21F7E-8393-48C0-840D-FE1D6EECED9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +64,7 @@ Global
 		{72CD4A23-3D3E-4BBE-85E3-1B6B964E3B2E} = {1BB426EA-E8F2-4F62-8C43-E3D76BE73E44}
 		{88952369-987E-431B-9EBC-31D86C843D2D} = {A937272F-94B3-4FE3-AA11-3A7C94A6AD5C}
 		{D878440C-A860-4984-8B2E-C7E17913264F} = {92065B2A-065D-4520-8178-73D591BD29B2}
+		{C7C21F7E-8393-48C0-840D-FE1D6EECED9A} = {51F30206-C894-4463-B5B9-4BEBCEE974CA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1A5D619D-08E0-4C5A-BDBD-EDBA93CE0ACB}
