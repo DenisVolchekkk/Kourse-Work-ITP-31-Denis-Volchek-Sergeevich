@@ -1,15 +1,16 @@
 USE LessonsDB
 go
+DELETE FROM Lessons
 DELETE FROM Teachers
 DELETE FROM Disciplines
 DELETE FROM DisciplineTypes
 DELETE FROM Classrooms
-DELETE FROM Facilities
 DELETE FROM StudentsGroups
-DELETE FROM LessonsTime
-DELETE FROM Lessons
+DELETE FROM Facilities
+DELETE FROM LessonsTimes
+
 ----Заполнение таблицы LessonsTime
-INSERT INTO LessonsTime (LessonTime) 
+INSERT INTO LessonsTimes (LessonTime) 
 Values
 	('8:20:00'),
 	('10:00:00'),
@@ -145,7 +146,7 @@ END
 DROP TABLE AuditoryTypes
 
 --Заполнение таблицы DisciplineTypes
-INSERT INTO DisciplineTypes(DisciplineType)
+INSERT INTO DisciplineTypes(TypeOfDiscipline)
 VALUES
 	('Лекция'),
 	('Практика'),
@@ -154,11 +155,11 @@ VALUES
 INSERT INTO Disciplines(DisciplineName)
 VALUES
 	('ООП'),
-	('Математический аниз'),
-	('Ангийский язык'),
+	('Математический анализ'),
+	('Английский язык'),
 	('БЖЧ'),
 	('Теория вероятности'),
-	('Дискретная математик'),
+	('Дискретная математика'),
 	('Кластерный анализ'),
 	('Базы данных'),
 	('История'),

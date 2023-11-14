@@ -1,0 +1,102 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@model ClassroomsViewModel
+
+@{
+    ViewData["Title"] = "Аудитории";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int Classroom = Model.NumberOfClassroom;
+    TimeSpan LessonTime = Model.LessonTime;
+    string ClassroomType = Model.ClassroomType;
+    DateTime LessonDate = Model.LessonDate;
+}
+
+<h1>Аудитории</h1>
+@if (User.IsInRole("admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+<form action="@Url.Action("Index", "Classrooms")" method="post">
+    <p>
+        Номер: @Html.TextBox("NumberOfClassroom", Classroom,new { style = "width: 100px;"})
+        <input type="submit" value="Найти" />
+    </p>
+</form>
+<form action="@Url.Action("ClassroomByLessonTime", "Classrooms")" method="post">
+    <p>
+        Тип аудитории: @Html.TextBox("ClassroomType", ClassroomType,new { style = "width: 100px;"})
+        Время урока: @Html.TextBox("LessonTime", LessonTime,new { type = "time",style = "width: 100px;"})
+        Дата : @Html.TextBox("LessonDate", LessonDate,new { type = "date",style = "width: 100px;"})
+
+        <input type="submit" value="Найти свободные аудитории" />
+    </p>
+</form>
+<table class="table">
+    <thead>
+
+        <tr>
+            <th>
+
+                <a asp-action="ClassroomByLessonTime" asp-route-sortOrder=@Model.SortViewModel.ClassroomSort>
+                    @Html.DisplayNameFor(model => model.NumberOfClassroom)
+                </a>
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Classrooms.FirstOrDefault().Places)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Classrooms.FirstOrDefault().Wing)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Classrooms.FirstOrDefault().ClassroomType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Classrooms.FirstOrDefault().ClassroomType)
+            </th>
+            <td>
+                Дата
+            </td>
+            <th></th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Classrooms)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NumberOfClassroom)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Places)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Wing)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ClassroomType)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.LessonDate)
+                </td>
+                @if (User.IsInRole("admin"))
+                {
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.ClassroomId">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.ClassroomId">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.ClassroomId">Delete</a>
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.ClassroomId">Details</a>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+<page-link page-model="@Model.PageViewModel" page-action="ClassroomByLessonTime"></page-link>

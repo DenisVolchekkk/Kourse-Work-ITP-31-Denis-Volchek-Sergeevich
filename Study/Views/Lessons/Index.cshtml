@@ -1,0 +1,187 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+
+@model LessonsViewModel
+@{
+    ViewData["Title"] = "Уроки";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string DisciplineName = Model.FilterLessonViewModel.Discipline;
+    TimeSpan LessonTime = Model.FilterLessonViewModel.LessonTime;
+    string Teacher = Model.FilterLessonViewModel.Teacher;
+    string Facility = Model.FilterLessonViewModel.Facility;
+    int Classroom = Model.FilterLessonViewModel.Classroom;
+    string StudentGroup = Model.FilterLessonViewModel.StudentGroup;
+    string DisciplineType = Model.FilterLessonViewModel.DisciplineType;
+    int Year = Model.FilterLessonViewModel.Year;
+    int Semestr = Model.FilterLessonViewModel.Semestr;
+    int DayOfweek = Model.FilterLessonViewModel.DayOfweek;
+    DateTime LessonDate = Model.FilterLessonViewModel.LessonDate;
+}
+
+<h2>Уроки</h2>
+@if (User.IsInRole("admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+
+
+<table class="table">
+    <thead>
+        <form action="@Url.Action("Index", "Lessons")" method="post">
+            Факультет: @Html.TextBox("Facility", Facility,new { style = "width: 100px;"})
+            <input type="submit" value="Найти" />
+            <input type="button" id="clearButton" value="Очистить" />
+            <tr>
+                <th>
+                    @Html.TextBox("Semestr", Semestr, new { type = "number", style = "width: 100px;" })
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.SemestrState>
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.Semestr)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("LessonDate", LessonDate, new { type = "Date",style = "width: 100px;" })
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DateState>
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.LessonDate)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("Year", Year, new { type = "number",style = "width: 100px;" })
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.YearSort>
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.Year)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("DayOfweek", DayOfweek, new { type = "number", style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DayOfWeekState>
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.DayOfweek)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("Classroom", Classroom,new { style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.ClassroomSort >
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.Classroom)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("Discipline", DisciplineName,new { style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DisciplineNameSort >
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.Discipline)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("DisciplineType", DisciplineType,new { style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DisciplineTypeState>
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.DisciplineType)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("LessonTime", LessonTime, new { type = "time",style = "width: 100px;" })
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.LessonTimeSort >
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.LessonTime)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("StudentGroup", StudentGroup,new { style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.StudentGroupState >
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.StudentGroup)
+                    </a>
+                </th>
+                <th>
+                    @Html.TextBox("Teacher", Teacher,new { style = "width: 100px;"})
+                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.TeacherSort >
+                        @Html.DisplayNameFor(model => model.FilterLessonViewModel.Teacher)
+                    </a>
+                </th>
+                <th></th>
+            </tr>
+        </form>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Lessons) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Semestr)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LessonDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Year)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DayOfweek)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Classroom.NumberOfClassroom)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Discipline.DisciplineName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DisciplineType.TypeOfDiscipline)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LessonTime.LessonTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StudentsGroup.NumberOfGroup)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Teacher.TeacherName)
+            </td>
+            @if (User.IsInRole("admin"))
+            {
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.LessonId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.LessonId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.LessonId">Delete</a>
+                </td>
+            }
+            else
+            {
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.LessonId">Details</a> 
+                    </td>
+            }
+        </tr>
+}
+    </tbody>
+
+</table>
+<page-link page-model="@Model.PageViewModel" page-action="Index"></page-link>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#submitButton').click(function () {
+            // Очистка значений полей формы
+            $('input[type="text"]').val('');
+            // Установка значения "0" для поля "Аудитория"
+            $('#Classroom').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#LessonTime').val('0');
+            $('#Semestr').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#Year').val('0');
+            $('#DayOfweek').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#LessonDate').val('0');
+        });
+
+        $('#clearButton').click(function () {
+            // Очистка значений полей формы
+            $('input[type="text"]').val('');
+            // Установка значения "0" для поля "Аудитория"
+            $('#Classroom').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#LessonTime').val('0');
+            $('#Semestr').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#Year').val('0');
+            $('#DayOfweek').val('0');
+            // Установка значения "0" для поля "Время"
+            $('#LessonDate').val('0');
+        });
+    });
+</script>

@@ -1,0 +1,55 @@
+﻿@model FacilitiesViewModel
+
+@{
+    ViewData["Title"] = "Факультеты";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string FacilityName = Model.FacilityName;
+}
+
+<h1>Факультеты</h1>
+
+@if (User.IsInRole("admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+<form action="@Url.Action("Index", "Facilities")" method="post">
+    Факультет: @Html.TextBox("FacilityName", FacilityName, new { style = "width: 100px;"})
+    <input type="submit" value="Найти" />
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.FacilityNameState>
+                    @Html.DisplayNameFor(model => model.FacilityName)
+                </a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Facilities) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.FacilityName)
+            </td>
+            @if (User.IsInRole("admin"))
+            {
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.FacilityId">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.FacilityId">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.FacilityId">Delete</a>
+                </td>
+            }
+            else
+            {
+                <td>
+                        <a asp-action="Details" asp-route-id="@item.FacilityId">Details</a>
+                </td>
+            }
+        </tr>
+}
+    </tbody>
+</table>

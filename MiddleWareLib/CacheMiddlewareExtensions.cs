@@ -12,52 +12,52 @@ namespace MiddleWareLib
 {
     public static class CacheMiddlewareExtensions
     {
-        public static IApplicationBuilder UseCacheMiddleware(this IApplicationBuilder app, int cacheDuration)
-        {
-            return app.UseMiddleware<CacheMiddleware>(cacheDuration);
-        }
-    }
+    //    public static IApplicationBuilder UseCacheMiddleware(this IApplicationBuilder app, int cacheDuration)
+    //    {
+    //        return app.UseMiddleware<CacheMiddleware>(cacheDuration);
+    //    }
+    //}
 
-    public interface IDbService
-    {
-        Task<string> GetCachedData();
-    }
+    //public interface IDbService
+    //{
+    //    Task<string> GetCachedData();
+    //}
 
-    public class DbService : IDbService
-    {
-        private readonly SchoolContext _dbContext;
-        private readonly IMemoryCache _cache;
+    //public class DbService : IDbService
+    //{
+    //    private readonly SchoolContext _dbContext;
+    //    private readonly IMemoryCache _cache;
 
-        public DbService(SchoolContext dbContext, IMemoryCache cache)
-        {
-            _dbContext = dbContext;
-            _cache = cache;
-        }
+    //    public DbService(SchoolContext dbContext, IMemoryCache cache)
+    //    {
+    //        _dbContext = dbContext;
+    //        _cache = cache;
+    //    }
 
-        public async Task<string> GetCachedData()
-        {
-            var cacheKey = "CachedData";
+        //public async Task<string> GetCachedData()
+        //{
+        //    var cacheKey = "CachedData";
 
-            if (_cache.TryGetValue(cacheKey, out string cachedData))
-            {
-                // Если данные присутствуют в кэше, возвращаем их
-                return cachedData;
-            }
-            else
-            {
-                // Логика получения данных из базы данных
-                var data = await _dbContext.Teachers.Take(20).ToListAsync();
+        //    if (_cache.TryGetValue(cacheKey, out string cachedData))
+        //    {
+        //        // Если данные присутствуют в кэше, возвращаем их
+        //        return cachedData;
+        //    }
+        //    else
+        //    {
+        //        // Логика получения данных из базы данных
+        //        var data = await _dbContext.Teachers.Take(20).ToListAsync();
 
-                // Преобразование данных в строку или объект, который можно преобразовать в строку
-                //var dataAsString = ConvertDataToString(data);
+        //        // Преобразование данных в строку или объект, который можно преобразовать в строку
+        //        //var dataAsString = ConvertDataToString(data);
 
-                // Кэширование данных на указанное время
-                var cacheExpiration = TimeSpan.FromMinutes(10); // Пример: кэш действителен в течение 10 минут
-                _cache.Set(cacheKey, data, cacheExpiration);
+        //        // Кэширование данных на указанное время
+        //        var cacheExpiration = TimeSpan.FromMinutes(10); // Пример: кэш действителен в течение 10 минут
+        //        _cache.Set(cacheKey, data, cacheExpiration);
 
-                return data;
-            }
-        }
+        //        return data;
+        //    }
+        //}
 
         //private IEnumerable<Teacher> ConvertDataToTeacher(List<Teacher> data)
         //{
@@ -78,20 +78,19 @@ namespace MiddleWareLib
         //}
     }
 
-    public class Startup
-    {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            // Регистрируем IMemoryCache в сервисах
-            services.AddMemoryCache();
-        }
+    //public class Startup
+    //{
+    //    public void ConfigureServices(IServiceCollection services)
+    //    {
+    //        // Регистрируем IMemoryCache в сервисах
+    //        services.AddMemoryCache();
+    //    }
 
-        public void Configure(IApplicationBuilder app)
-        {
-            // Используем кэш-мидлваре для всех запросов
-            app.UseCacheMiddleware(2 *4 +240);
+    //    public void Configure(IApplicationBuilder app)
+    //    {
+    //        // Используем кэш-мидлваре для всех запросов
+    //        app.UseCacheMiddleware(2 *4 +240);
 
-            // Добавьте остальные компоненты конвейера и настройки приложения
-        }
-    }
-}
+    //        // Добавьте остальные компоненты конвейера и настройки приложения
+    //    }
+ }

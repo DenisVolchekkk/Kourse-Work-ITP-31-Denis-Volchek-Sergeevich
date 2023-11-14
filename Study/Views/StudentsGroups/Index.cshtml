@@ -1,0 +1,75 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+@model StudentsGroupViewModel
+
+@{
+    ViewData["Title"] = "Группы студентов";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string NumberOfGroup = Model.NumberOfGroup;
+    string Facility = Model.Facility;
+}
+
+<h1>Группы студентов</h1>
+    @if (User.IsInRole("admin"))
+    {
+        <p>
+
+            <a asp-action="Create">Create New</a>
+
+        </p>
+    }
+<form action="@Url.Action("Index", "StudentsGroups")" method="post">
+    Группа: @Html.TextBox("NumberOfGroup", NumberOfGroup, new { style = "width: 100px;"})
+    Факультет: @Html.TextBox("Facility", Facility, new { style = "width: 100px;"})
+    <input type="submit" value="Найти" />
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.StudentGroupState>
+                    @Html.DisplayNameFor(model => model.NumberOfGroup)
+                </a>
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StudentsGroups.FirstOrDefault().QuantityOfStudents)
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.FacilityNameState>
+                    @Html.DisplayNameFor(model => model.Facility)
+                </a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.StudentsGroups) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.NumberOfGroup)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.QuantityOfStudents)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.Facility.FacilityName)
+            </td>
+            @if (User.IsInRole("admin"))
+            {
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.StudentsGroupId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.StudentsGroupId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.StudentsGroupId">Delete</a>
+                </td>
+            }
+            else
+            {
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.StudentsGroupId">Details</a>
+                    </td>
+            }
+        </tr>
+}
+    </tbody>
+</table>
+<page-link page-model="@Model.PageViewModel" page-action="Index"></page-link>

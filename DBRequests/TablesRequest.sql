@@ -1,8 +1,8 @@
 Use LessonsDB
 go
-DROP TABLE Lessons,LessonsTime,Disciplines,Classrooms,DisciplineTypes, Teachers,StudentsGroups,Facilities
+DROP TABLE Lessons,LessonsTimes,Disciplines,Classrooms,DisciplineTypes, Teachers,StudentsGroups,Facilities
 -- Создание таблицы LessonsTime
-CREATE TABLE LessonsTime (
+CREATE TABLE LessonsTimes (
     LessonTimeID INT IDENTITY(1,1) PRIMARY KEY,
     LessonTime Time NOT NULL
 );
@@ -23,17 +23,17 @@ CREATE TABLE Classrooms (
 --Создание таблицы DisciplineTypes
 CREATE TABLE DisciplineTypes (
     DisciplineTypeID INT IDENTITY(1,1) PRIMARY KEY,
-	DisciplineType VARCHAR(50) NOT NULL
+	TypeOfDiscipline VARCHAR(50) NOT NULL
 );
 --Создание таблицы Teachers
 CREATE TABLE Teachers (
     TeacherID INT IDENTITY(1,1) PRIMARY KEY,
-	TeacherName VARCHAR(50) NOT NULL
+	TeacherName VARCHAR(100) NOT NULL
 );
 --Создание таблицы Ficilities
 CREATE TABLE Facilities (
     FacilityID INT IDENTITY(1,1) PRIMARY KEY,
-	FacilityName VARCHAR(50) NOT NULL
+	FacilityName VARCHAR(100) NOT NULL
 );
 --Создание таблицы StudentsGroups
 CREATE TABLE StudentsGroups (
@@ -56,7 +56,7 @@ CREATE TABLE Lessons (
 	LessonTimeID Int,
 	Year INT,
 	DayOfweek INT,
-	FOREIGN KEY (LessonTimeID) REFERENCES LessonsTime(LessonTimeID),
+	FOREIGN KEY (LessonTimeID) REFERENCES LessonsTimes(LessonTimeID),
 	FOREIGN KEY (ClassroomID) REFERENCES Classrooms(ClassroomID),
 	FOREIGN KEY (DisciplineID) REFERENCES Disciplines(DisciplineID),
 	FOREIGN KEY (DisciplineTypeID) REFERENCES DisciplineTypes(DisciplineTypeID),

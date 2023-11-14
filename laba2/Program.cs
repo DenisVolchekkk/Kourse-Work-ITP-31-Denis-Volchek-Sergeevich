@@ -13,7 +13,7 @@ namespace laba2
     {
         static void Main(string[] args)
         {
-            var dbContext = new SchoolContext();
+            var dbContext = new LessonsDbContext();
             int key = 0;
             do
             {
@@ -92,18 +92,18 @@ namespace laba2
 
         }
         //Выборка всех данных из таблицы, стоящей в схеме базы данных нас стороне отношения «один» – 1 шт.
-        static void SelectDisciplines(SchoolContext dbContext)
+        static void SelectDisciplines(LessonsDbContext dbContext)
         {
             var disciplines = dbContext.Disciplines.ToList();
 
             // Выводим результаты выборки
             foreach (var discipline in disciplines)
             {
-                Console.WriteLine($"|DisciplineID: {discipline.DisciplineID}\t| DisciplineName: {discipline.DisciplineName}\t");
+                Console.WriteLine($"|DisciplineID: {discipline.DisciplineId}\t| DisciplineName: {discipline.DisciplineName}\t");
             }
         }
         //Выборка данных из таблицы, стоящей в схеме базы данных нас стороне отношения «один»,
-        static void WherePlaces(SchoolContext dbContext)
+        static void WherePlaces(LessonsDbContext dbContext)
         {
 
             int targetPlaces = 80;
@@ -114,10 +114,10 @@ namespace laba2
 
             foreach (var classroom in disciplines)
             {
-                Console.WriteLine($"|ClassroomId: {classroom.ClassroomID}\t| ClassroomPlaces: {classroom.Places}\t|");
+                Console.WriteLine($"|ClassroomId: {classroom.ClassroomId}\t| ClassroomPlaces: {classroom.Places}\t|");
             }
         }
-        static void GroupByStudentsGroups(SchoolContext dbContext)
+        static void GroupByStudentsGroups(LessonsDbContext dbContext)
         {
             var groupStatistics = dbContext.StudentsGroups
             .GroupBy(g => g.FacilityId)
@@ -133,13 +133,13 @@ namespace laba2
                 Console.WriteLine($"|FacilityId: {statistics.FacilityId}\t| AverageQuantityOfStudents: {(int)statistics.AverageQuantityOfStudents}\t|");
             }
         }
-        static void JoinTeacher(SchoolContext dbContext)
+        static void JoinTeacher(LessonsDbContext dbContext)
         {
             var query = from lesson in dbContext.Lessons
-                        join teacher in dbContext.Teachers on lesson.TeacherID equals teacher.TeacherID
+                        join teacher in dbContext.Teachers on lesson.TeacherId equals teacher.TeacherId
                         select new
                         {
-                            LessonID = lesson.LessonID,
+                            LessonID = lesson.LessonId,
                             LessonDate = lesson.LessonDate,
                             TeacherName = teacher.TeacherName
                         };
@@ -151,7 +151,7 @@ namespace laba2
                 Console.WriteLine($"|LessonID: {item.LessonID}\t|LessonDate: {item.LessonDate}\t| TeacherName: {item.TeacherName}\t|");
             }
         }
-        static void SelectLessonAndStudentQuantity(SchoolContext dbContext)
+        static void SelectLessonAndStudentQuantity(LessonsDbContext dbContext)
         {
             string keyword = "БЖЧ"; // Ключевое слово для фильтрации дисциплин
             int minStudents = 15; // Минимальное количество студентов в группе
@@ -166,10 +166,10 @@ namespace laba2
 
             foreach (var lesson in result)
             {
-                Console.WriteLine($"LessonID: {lesson.LessonID}\t|Discipline: {lesson.Discipline.DisciplineName}| Students: {lesson.StudentsGroup.QuantityOfStudents}|");
+                Console.WriteLine($"LessonID: {lesson.LessonId}\t|Discipline: {lesson.Discipline.DisciplineName}| Students: {lesson.StudentsGroup.QuantityOfStudents}|");
             }
         }
-        static void AddTeacher(SchoolContext dbContext)
+        static void AddTeacher(LessonsDbContext dbContext)
         {
             Console.WriteLine("Введите имя учителя");
             string name = Console.ReadLine();
@@ -180,14 +180,14 @@ namespace laba2
             };
 
             // Добавление объекта Teacher в контекст данных
-            dbContext.Teachers.Add(teacher);
+            //dbContext.Teachers.Add(teacher);
 
-            // Сохранение изменений
+            //
             dbContext.SaveChanges();
 
             Console.WriteLine("Учитель добавлен");
         }
-        static void DeleteTeacher(SchoolContext dbContext)
+        static void DeleteTeacher(LessonsDbContext dbContext)
         {
             Console.WriteLine("Введите имя учителя");
             string name = Console.ReadLine();
@@ -207,7 +207,7 @@ namespace laba2
             
         }
 
-        static void AddLesson(SchoolContext dbContext)
+        static void AddLesson(LessonsDbContext dbContext)
         {
             var lesson = new Lesson
             {
@@ -223,14 +223,14 @@ namespace laba2
                 Year = 2023,
                 DayOfWeek = 1
             };
-            dbContext.Lessons.Add(lesson);
+            //dbContext.Lessons.Add(lesson);
 
             // Сохранение изменений
             dbContext.SaveChanges();
             Console.WriteLine("Урок добавлен");
         }
         
-        static void DeleteLesson(SchoolContext dbContext)
+        static void DeleteLesson(LessonsDbContext dbContext)
         {
             Console.WriteLine("Введите id");
             int id = int.Parse(Console.ReadLine());
@@ -246,7 +246,7 @@ namespace laba2
                 Console.WriteLine("Урок удален");
             }
         }
-        static void UpdateDiscipline(SchoolContext dbContext)
+        static void UpdateDiscipline(LessonsDbContext dbContext)
         {
             Console.WriteLine("Введите название дисциплины, которую хотите изменить");
             string name = Console.ReadLine();

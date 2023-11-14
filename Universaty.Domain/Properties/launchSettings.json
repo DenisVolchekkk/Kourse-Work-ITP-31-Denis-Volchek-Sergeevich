@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Universaty.Domain": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:63718;http://localhost:63720"
+    }
+  }
+}

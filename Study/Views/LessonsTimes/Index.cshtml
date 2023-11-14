@@ -1,0 +1,55 @@
+﻿@model LessonTimesViewModel
+
+@{
+    ViewData["Title"] = "Время";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    TimeSpan LessonTime = Model.LessonTime;
+}
+
+<h1>Время</h1>
+
+@if (User.IsInRole("admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+<form action="@Url.Action("Index", "LessonsTimes")" method="post">
+    Время: @Html.TextBox("LessonTime", LessonTime, new { type = "time", style = "width: 100px;"})
+    <input type="submit" value="Найти" />
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.LessonTimeSort>
+                    @Html.DisplayNameFor(model => model.LessonTime)
+                </a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.LessonsTimes) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.LessonTime)
+            </td>
+            @if (User.IsInRole("admin"))
+            {
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.LessonTimeId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.LessonTimeId">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.LessonTimeId">Delete</a>
+                </td>
+            }
+            else
+            {
+                <td>
+                        <a asp-action="Details" asp-route-id="@item.LessonTimeId">Details</a>
+                </td>
+            }
+        </tr>
+}
+    </tbody>
+</table>

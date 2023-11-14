@@ -20,16 +20,10 @@ namespace Universaty.Domain
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<StudentsGroup> StudentsGroups { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
+        public SchoolContext(DbContextOptions<SchoolContext> options)
+    : base(options)
+        { }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("UniversatyConnection"));
-        }
 
     }
 }

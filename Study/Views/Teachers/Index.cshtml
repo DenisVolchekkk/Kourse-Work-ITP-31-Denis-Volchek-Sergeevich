@@ -1,0 +1,55 @@
+﻿@model TeachersViewModel
+
+@{
+    ViewData["Title"] = "Учителя";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string TeacherName = Model.TeacherName;
+}
+
+<h1>Учителя</h1>
+
+@if (User.IsInRole("admin"))
+{
+    <p>
+        <a asp-action="Create">Create New</a>
+    </p>
+}
+<form action="@Url.Action("Index", "Teachers")" method="post">
+    Учитель: @Html.TextBox("TeacherName", TeacherName, new { style = "width: 100px;"})
+    <input type="submit" value="Найти" />
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.TeacherSort>
+                    @Html.DisplayNameFor(model => model.TeacherName)
+                </a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Teachers) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.TeacherName)
+            </td>
+                @if (User.IsInRole("admin"))
+                {
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.TeacherId">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.TeacherId">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.TeacherId">Delete</a>
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.TeacherId">Details</a>
+                    </td>
+                }
+        </tr>
+}
+    </tbody>
+</table>
