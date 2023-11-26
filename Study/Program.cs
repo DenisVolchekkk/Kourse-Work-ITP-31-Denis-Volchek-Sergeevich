@@ -7,6 +7,9 @@ using Study.Models;
 using Microsoft.AspNetCore.Mvc;
 using Study.Middleware;
 using Microsoft.Extensions.Hosting;
+using Study.Services;
+
+
 
 namespace Study
 {
@@ -28,8 +31,10 @@ namespace Study
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultUI()
-                    .AddDefaultTokenProviders(); ;
-
+                    .AddDefaultTokenProviders();
+            builder.Services.AddMemoryCache();
+             
+            builder.Services.AddTransient<LessonService>();
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
@@ -44,7 +49,7 @@ namespace Study
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            builder.Services.AddTransient<IEmailSender, EmailSender>();
+            //builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddControllersWithViews(options => {
                 options.CacheProfiles.Add("ModelCache",
                     new CacheProfile()
@@ -74,6 +79,7 @@ namespace Study
             app.UseSession();
 
             app.UseDbInitializer();
+            
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

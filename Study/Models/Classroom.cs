@@ -24,7 +24,6 @@ public partial class Classroom
     public int Wing { get; set; }
 
     [Display(Name = "Тип аудитории")]
-    [Required(ErrorMessage = "Не указан тип аудитории")]
     public string ClassroomType { get; set; } = null!;
 
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();

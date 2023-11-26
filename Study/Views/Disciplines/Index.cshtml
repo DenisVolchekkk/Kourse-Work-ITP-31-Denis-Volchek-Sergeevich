@@ -11,12 +11,18 @@
 @if (User.IsInRole("admin"))
 {
     <p>
-        <a asp-action="Create">Create New</a>
+        <a class ="link-success" asp-action="Create">Добавить</a>
     </p>
 }
 <form action="@Url.Action("Index", "Disciplines")" method="post">
-    Дисциплина: @Html.TextBox("DisciplineName", DisciplineName, new { style = "width: 100px;"})
-    <input type="submit" value="Найти" />
+    <div class="row g-3">
+        <div class="col-auto">
+            @Html.TextBox("DisciplineName", DisciplineName, new {placeholder="Дисциплина", style = "width: 100px;",@class="form-control custom-font-size"})
+        </div>
+        <div class="col-auto">
+            <input class="btn btn-outline-primary" style="margin-left: 10px" type="submit" value="Найти" />
+        </div>
+    </div>
 </form>
 <table class="table">
     <thead>
@@ -38,18 +44,19 @@
             @if (User.IsInRole("admin"))
             {
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.DisciplineId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.DisciplineId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.DisciplineId">Delete</a>
+                    <a class="link-warning" asp-action="Edit" asp-route-id="@item.DisciplineId">Обновить</a> |
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.DisciplineId">Детали</a> |
+                    <a class="link-danger" asp-action="Delete" asp-route-id="@item.DisciplineId">Удалить</a>
                 </td>
             }
             else
             {
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.DisciplineId">Details</a>
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.DisciplineId">Детали</a> |
                 </td>
             }
         </tr>
 }
     </tbody>
 </table>
+<page-link page-model="@Model.PageViewModel" page-action="Index"></page-link>

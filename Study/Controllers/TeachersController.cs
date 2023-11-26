@@ -172,12 +172,14 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.Teachers'  is null.");
             }
-            var teacher = await _context.Teachers.FindAsync(id);
+            var teacher = await _context.Teachers.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.TeacherId == id);
             if (teacher != null)
             {
                 _context.Teachers.Remove(teacher);
+                _context.Lessons.RemoveRange(teacher.Lessons);
+
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

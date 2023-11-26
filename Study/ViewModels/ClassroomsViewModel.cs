@@ -25,7 +25,7 @@ namespace Study.ViewModels
         public string ClassroomType { get; set; } = null!;
         [Display(Name = "Дата")]
         [DataType(DataType.Date)]
-        public DateTime LessonDate { get; set; }
+        public DateTime? LessonDate { get; set; }
         //Свойство для навигации по страницам
         public PageViewModel PageViewModel { get; set; }
         public SortViewModel SortViewModel { get; set; }

@@ -28,7 +28,7 @@ namespace Study.ViewModels
         public int Semestr { get; set; }
         [Display(Name = "Дата")]
         [DataType(DataType.Date)]
-        public DateTime LessonDate { get; set; }
+        public DateTime? LessonDate { get; set; }
 
         [Display(Name = "Год")]
 

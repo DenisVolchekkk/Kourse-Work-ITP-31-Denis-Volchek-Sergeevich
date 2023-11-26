@@ -36,3 +36,15 @@ ul {
 .form-field {
     max-width: 50px; /* Установите максимальную ширину полей */
 }
+a {
+    text-decoration: none;
+}
+.btn-rounded {
+    border-radius: 19px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
+}
+.custom-font-size {
+    font-size: 12px; /* Установите желаемый размер шрифта */
+}

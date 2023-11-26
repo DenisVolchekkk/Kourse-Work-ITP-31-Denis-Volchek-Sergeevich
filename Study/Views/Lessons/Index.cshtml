@@ -1,7 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
-@inject UserManager<IdentityUser> UserManager
-
-@model LessonsViewModel
+﻿@model LessonsViewModel
 @{
     ViewData["Title"] = "Уроки";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -15,81 +12,88 @@
     int Year = Model.FilterLessonViewModel.Year;
     int Semestr = Model.FilterLessonViewModel.Semestr;
     int DayOfweek = Model.FilterLessonViewModel.DayOfweek;
-    DateTime LessonDate = Model.FilterLessonViewModel.LessonDate;
 }
 
 <h2>Уроки</h2>
 @if (User.IsInRole("admin"))
 {
     <p>
-        <a asp-action="Create">Create New</a>
+        <a class="link-success" asp-action="Create">Добавить</a>
     </p>
 }
 
 
 <table class="table">
     <thead>
-        <form action="@Url.Action("Index", "Lessons")" method="post">
-            Факультет: @Html.TextBox("Facility", Facility,new { style = "width: 100px;"})
-            <input type="submit" value="Найти" />
-            <input type="button" id="clearButton" value="Очистить" />
+        <form  action="@Url.Action("Index", "Lessons")" method="post">
+            <div class="row g-3">
+                <div class="col-auto">
+                    @Html.TextBox("Facility", Facility,new {@class="form-control custom-font-size",placeholder = "Факультет", style = "width: 100px;"})
+                </div>
+                <div class="col-auto">
+                    <input class="btn btn-outline-primary" style="margin-left: 10px" type="submit" value="Найти" />
+                </div>
+                <div class="col-auto">
+                    <input class="btn btn-outline-primary" style="margin-left: 10px" type="button" id="clearButton" value="Очистить" />
+                </div>
+            </div>
             <tr>
                 <th>
-                    @Html.TextBox("Semestr", Semestr, new { type = "number", style = "width: 100px;" })
+                    @Html.TextBox("Semestr", Semestr, new {placeholder = "Семестр", type = "number", style = "width: 100px;",@class="form-control custom-font-size" })
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.SemestrState>
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.Semestr)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("LessonDate", LessonDate, new { type = "Date",style = "width: 100px;" })
-                    <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DateState>
+                <input placeholder="Дата урока" type="text" onfocus="(this.type = 'date')" class="form-control custom-font-size" asp-for="@Model.FilterLessonViewModel.LessonDate" name="LessonDate" style="width: 100px;"></input>
+                <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DateState>
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.LessonDate)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("Year", Year, new { type = "number",style = "width: 100px;" })
+                    @Html.TextBox("Year", Year, new {placeholder = "Год", type = "number",style = "width: 100px;",@class="form-control custom-font-size" })
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.YearSort>
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.Year)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("DayOfweek", DayOfweek, new { type = "number", style = "width: 100px;"})
+                    @Html.TextBox("DayOfweek", DayOfweek, new {placeholder = "День недели", type = "number", style = "width: 100px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DayOfWeekState>
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.DayOfweek)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("Classroom", Classroom,new { style = "width: 100px;"})
+                    @Html.TextBox("Classroom", Classroom,new {placeholder = "Аудитория", style = "width: 100px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.ClassroomSort >
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.Classroom)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("Discipline", DisciplineName,new { style = "width: 100px;"})
+                    @Html.TextBox("Discipline", DisciplineName, new {placeholder = "Дисциплина", style = "width: 100px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DisciplineNameSort >
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.Discipline)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("DisciplineType", DisciplineType,new { style = "width: 100px;"})
+                    @Html.TextBox("DisciplineType", DisciplineType,new {placeholder = "Тип дисциплины", style = "width: 125px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.DisciplineTypeState>
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.DisciplineType)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("LessonTime", LessonTime, new { type = "time",style = "width: 100px;" })
+                    @Html.TextBox("LessonTime", LessonTime, new {placeholder = "Время", type = "time",style = "width: 100px;",@class="form-control custom-font-size" })
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.LessonTimeSort >
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.LessonTime)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("StudentGroup", StudentGroup,new { style = "width: 100px;"})
+                    @Html.TextBox("StudentGroup", StudentGroup,new {placeholder = "Группа", style = "width: 100px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.StudentGroupState >
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.StudentGroup)
                     </a>
                 </th>
                 <th>
-                    @Html.TextBox("Teacher", Teacher,new { style = "width: 100px;"})
+                    @Html.TextBox("Teacher", Teacher,new {placeholder = "Учитель", style = "width: 100px;",@class="form-control custom-font-size"})
                     <a asp-action="Index" asp-route-sortOrder=@Model.SortViewModel.TeacherSort >
                         @Html.DisplayNameFor(model => model.FilterLessonViewModel.Teacher)
                     </a>
@@ -134,15 +138,15 @@
             @if (User.IsInRole("admin"))
             {
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.LessonId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.LessonId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.LessonId">Delete</a>
+                    <a class="link-warning" asp-action="Edit" asp-route-id="@item.LessonId">Обновить</a> |
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.LessonId">Детали</a> |
+                    <a class="link-danger" asp-action="Delete" asp-route-id="@item.LessonId">Удалить</a>
                 </td>
             }
             else
             {
                     <td>
-                        <a asp-action="Details" asp-route-id="@item.LessonId">Details</a> 
+                        <a class="link-info" asp-action="Details" asp-route-id="@item.LessonId">Детали</a>
                     </td>
             }
         </tr>

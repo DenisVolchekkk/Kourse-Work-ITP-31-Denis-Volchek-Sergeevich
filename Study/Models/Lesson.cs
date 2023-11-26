@@ -11,23 +11,23 @@ public partial class Lesson
     [Display(Name = "Код урока")]
     public int LessonId { get; set; }
 
-    [Display(Name = "Код дисциплины")]
+    [Display(Name = "Дисциплина")]
     [ForeignKey("Discipline")]
     public int? DisciplineId { get; set; }
 
-    [Display(Name = "Код аудитории")]
+    [Display(Name = "Аудитория")]
     [ForeignKey("Classroom")]
     public int? ClassroomId { get; set; }
 
-    [Display(Name = "Код типа дисциплины")]
+    [Display(Name = "Тип дисциплины")]
     [ForeignKey("DisciplineType")]
     public int? DisciplineTypeId { get; set; }
 
-    [Display(Name = "Код учителя")]
+    [Display(Name = "Учитель")]
     [ForeignKey("Teacher")]
     public int? TeacherId { get; set; }
 
-    [Display(Name = "Код группы")]
+    [Display(Name = "Группа")]
     [ForeignKey("StudentsGroup")]
     public int? StudentsGroupId { get; set; }
 
@@ -40,15 +40,13 @@ public partial class Lesson
     [Required(ErrorMessage = "Не указана дата")]
     public DateTime? LessonDate { get; set; }
 
-    [Display(Name = "Код времени")]
+    [Display(Name = "Время")]
     [ForeignKey("LessonsTime")]
     public int? LessonTimeId { get; set; }
 
     [Display(Name = "Год")]
-    [Required(ErrorMessage = "Не указан год")]
     public int? Year { get; set; }
     [Display(Name = "День недели")]
-    [Required(ErrorMessage = "Не указан день недели")]
     [Range(1, 7, ErrorMessage = "День недели может быть от 1 до 7")]
     public int? DayOfweek { get; set; }
 

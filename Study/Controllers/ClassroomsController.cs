@@ -209,10 +209,12 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.Classrooms'  is null.");
             }
-            var classroom = await _context.Classrooms.FindAsync(id);
+            var classroom = await _context.Classrooms.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.ClassroomId == id);
             if (classroom != null)
             {
+
                 _context.Classrooms.Remove(classroom);
+                _context.Lessons.RemoveRange(classroom.Lessons);
             }
             
             await _context.SaveChangesAsync();
@@ -238,7 +240,7 @@ namespace Study.Controllers
 
             return classrooms;
         }
-        private IQueryable<Classroom> Sort_SearchByTime(IQueryable<Classroom> classrooms, SortState sortOrder, string searchClassroomType, TimeSpan searchLessonTime,DateTime searchDate)
+        private IQueryable<Classroom> Sort_SearchByTime(IQueryable<Classroom> classrooms, SortState sortOrder, string searchClassroomType, TimeSpan searchLessonTime,DateTime? searchDate)
         {
             switch (sortOrder)
             {
@@ -253,7 +255,7 @@ namespace Study.Controllers
             .Where(c => !c.Lessons.Any(l =>
                 l.LessonTime.LessonTime == searchLessonTime  
                 && l.LessonDate == searchDate
-                && l.Classroom.ClassroomType.Contains(searchClassroomType )));
+                && l.Classroom.ClassroomType.Contains(searchClassroomType )) || c.Lessons.Count == 0).Where(c => c.ClassroomType.Contains(searchClassroomType));
 
             return unavailableClassrooms;
         }

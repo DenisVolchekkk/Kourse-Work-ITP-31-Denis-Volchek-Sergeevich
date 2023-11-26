@@ -180,12 +180,14 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.StudentsGroups'  is null.");
             }
-            var studentsGroup = await _context.StudentsGroups.FindAsync(id);
+            var studentsGroup = await _context.StudentsGroups.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.StudentsGroupId == id);
             if (studentsGroup != null)
             {
                 _context.StudentsGroups.Remove(studentsGroup);
+                _context.Lessons.RemoveRange(studentsGroup.Lessons);
+
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

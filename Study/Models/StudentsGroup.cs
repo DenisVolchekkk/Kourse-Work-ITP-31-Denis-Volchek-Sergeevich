@@ -17,7 +17,7 @@ public partial class StudentsGroup
     [Display(Name = "Кол-во студентов")]
     [Required(ErrorMessage = "Не указано кол-во студентов")]
     public int? QuantityOfStudents { get; set; }
-    [Display(Name = "Код факультета")]
+    [Display(Name = "Факультет")]
     [ForeignKey("Facility")]
     public int? FacilityId { get; set; }
 

@@ -1,14 +1,16 @@
 ﻿@model Study.Models.Lesson
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
 
 @{
     ViewData["Title"] = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>Детали</h1>
 
 <div>
-    <h4>Lesson</h4>
+    <h4>Урок</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -74,6 +76,8 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.LessonId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @if (User.IsInRole("admin")){
+        <a class="link-warning" asp-action="Edit" asp-route-id="@Model?.LessonId">Обновить</a>
+    }
+    <a asp-action="Index">Вернуться к списку</a>
 </div>

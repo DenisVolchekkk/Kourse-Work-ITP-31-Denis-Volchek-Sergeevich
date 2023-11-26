@@ -8,14 +8,14 @@
     int Classroom = Model.NumberOfClassroom;
     TimeSpan LessonTime = Model.LessonTime;
     string ClassroomType = Model.ClassroomType;
-    DateTime LessonDate = Model.LessonDate;
+    DateTime? LessonDate = Model.LessonDate;
 }
 
 <h1>Аудитории</h1>
 @if (User.IsInRole("admin"))
 {
     <p>
-        <a asp-action="Create">Create New</a>
+        <a class="link-success" asp-action="Create">Добавить</a>
     </p>
 }
 <form action="@Url.Action("Index", "Classrooms")" method="post">
@@ -28,7 +28,7 @@
     <p>
         Тип аудитории: @Html.TextBox("ClassroomType", ClassroomType,new { style = "width: 100px;"})
         Время урока: @Html.TextBox("LessonTime", LessonTime,new { type = "time",style = "width: 100px;"})
-        Дата : @Html.TextBox("LessonDate", LessonDate,new { type = "date",style = "width: 100px;"})
+        Дата урока: <input asp-for="@Model.LessonDate" name="LessonDate" type="date" style="width: 100px;"></input>
 
         <input type="submit" value="Найти свободные аудитории" />
     </p>
@@ -55,9 +55,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Classrooms.FirstOrDefault().ClassroomType)
             </th>
-            <td>
-                Дата
-            </td>
             <th></th>
         </tr>
 
@@ -78,23 +75,21 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.ClassroomType)
                 </td>
+
+            @if (User.IsInRole("admin"))
+            {
                 <td>
-                    @Html.DisplayFor(model => model.LessonDate)
+                    <a class="link-warning" asp-action="Edit" asp-route-id="@item.ClassroomId">Обновить</a> |
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.ClassroomId">Детали</a> |
+                    <a class="link-danger" asp-action="Delete" asp-route-id="@item.ClassroomId">Удалить</a>
                 </td>
-                @if (User.IsInRole("admin"))
-                {
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.ClassroomId">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.ClassroomId">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ClassroomId">Delete</a>
-                    </td>
-                }
-                else
-                {
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.ClassroomId">Details</a>
-                    </td>
-                }
+            }
+            else
+            {
+                <td>
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.ClassroomId">Детали</a> |
+                </td>
+            }
             </tr>
         }
     </tbody>

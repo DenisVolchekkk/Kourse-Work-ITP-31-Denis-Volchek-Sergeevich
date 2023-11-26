@@ -5,9 +5,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<h1>Обновить</h1>
 
-<h4>DisciplineType</h4>
+<h4>Тип дисциплины</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -20,13 +20,13 @@
                 <span asp-validation-for="TypeOfDiscipline" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input class="btn btn-outline-warning" type="submit" value="Save"  />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Вернуться к списку</a>
 </div>
 

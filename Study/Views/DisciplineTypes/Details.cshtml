@@ -5,10 +5,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>Детали</h1>
 
 <div>
-    <h4>DisciplineType</h4>
+    <h4>Тип дисциплины</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -20,6 +20,9 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.DisciplineTypeId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @if (User.IsInRole("admin"))
+    {
+        <a class="link-warning" asp-action="Edit" asp-route-id="@Model?.DisciplineTypeId">Обновить</a>
+    }
+    <a asp-action="Index">Вернуться к списку</a>
 </div>

@@ -175,12 +175,14 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.DisciplineTypes'  is null.");
             }
-            var disciplineType = await _context.DisciplineTypes.FindAsync(id);
+            var disciplineType = await _context.DisciplineTypes.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.DisciplineTypeId == id);
             if (disciplineType != null)
             {
                 _context.DisciplineTypes.Remove(disciplineType);
+                _context.Lessons.RemoveRange(disciplineType.Lessons);
+
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

@@ -175,12 +175,19 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.Facilities'  is null.");
             }
-            var facility = await _context.Facilities.FindAsync(id);
+            var facility = await _context.Facilities.Include(c => c.StudentsGroups).FirstOrDefaultAsync(c => c.FacilityId == id);
+            var studentGroups =   _context.StudentsGroups.Include(c => c.Lessons).Where(c => c.FacilityId == id).ToList();
             if (facility != null)
             {
                 _context.Facilities.Remove(facility);
+                _context.StudentsGroups.RemoveRange(facility.StudentsGroups);
+                foreach(var studentGroup in studentGroups)
+                {
+                    _context.Lessons.RemoveRange(studentGroup.Lessons);
+                }
+
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

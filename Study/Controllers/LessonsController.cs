@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Study.Filters;
-using Study.Filters.Fili;
 using Study.Models;
+using Study.Services;
 using Study.ViewModels;
+using System.Linq;
+using System;
 using System.Collections.Generic;
 using SessionExtensions = Study.Filters.SessionExtensions;
 
@@ -23,11 +25,11 @@ namespace Study.Controllers
         // GET: Lessons
         [ResponseCache(CacheProfileName = "ModelCache")]
         //[SetToSession("Less")]
-        public IActionResult Index( SortState sortOrder, int page = 1)
+        public IActionResult Index(SortState sortOrder, int page = 1)
         {
             LessonsViewModel lessons;
             var lesson = HttpContext.Session.Get<FilterLessonViewModel>("Lesson");
-            if(lesson == null)
+            if (lesson == null)
             {
                 lesson = new FilterLessonViewModel();
             }
@@ -59,21 +61,16 @@ namespace Study.Controllers
 
 
         // GET: Lessons/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
             if (id == null || _context.Lessons == null)
             {
                 return NotFound();
             }
 
-            var lesson = await _context.Lessons
-                .Include(l => l.Classroom)
-                .Include(l => l.Discipline)
-                .Include(l => l.DisciplineType)
-                .Include(l => l.LessonTime)
-                .Include(l => l.StudentsGroup)
-                .Include(l => l.Teacher)
-                .FirstOrDefaultAsync(m => m.LessonId == id);
+            var lesson =  _context.Lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
+                .FirstOrDefault(m => m.LessonId == id);
             if (lesson == null)
             {
                 return NotFound();
@@ -85,6 +82,7 @@ namespace Study.Controllers
         // GET: Lessons/Create
         public IActionResult Create()
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
             ViewData["ClassroomId"] = new SelectList(_context.Classrooms, "ClassroomId", "NumberOfClassroom");
             ViewData["DisciplineId"] = new SelectList(_context.Disciplines, "DisciplineId", "DisciplineName");
             ViewData["DisciplineTypeId"] = new SelectList(_context.DisciplineTypes, "DisciplineTypeId", "TypeOfDiscipline");
@@ -101,10 +99,13 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("LessonId,DisciplineId,ClassroomId,DisciplineTypeId,TeacherId,StudentsGroupId,Semestr,LessonDate,LessonTimeId,Year,DayOfweek")] Lesson lesson)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(lesson);
                 await _context.SaveChangesAsync();
+                cache.SetLessons();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["ClassroomId"] = new SelectList(_context.Classrooms, "ClassroomId", "NumberOfClassroom", lesson.ClassroomId);
@@ -117,14 +118,16 @@ namespace Study.Controllers
         }
 
         // GET: Lessons/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             if (id == null || _context.Lessons == null)
             {
                 return NotFound();
             }
 
-            var lesson = await _context.Lessons.FindAsync(id);
+            var lesson =  cache.GetLessons().FirstOrDefault(m => m.LessonId == id);
             if (lesson == null)
             {
                 return NotFound();
@@ -145,6 +148,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("LessonId,DisciplineId,ClassroomId,DisciplineTypeId,TeacherId,StudentsGroupId,Semestr,LessonDate,LessonTimeId,Year,DayOfweek")] Lesson lesson)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             if (id != lesson.LessonId)
             {
                 return NotFound();
@@ -156,6 +161,8 @@ namespace Study.Controllers
                 {
                     _context.Update(lesson);
                     await _context.SaveChangesAsync();
+                    cache.SetLessons();
+                    
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -180,21 +187,17 @@ namespace Study.Controllers
         }
 
         // GET: Lessons/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             if (id == null || _context.Lessons == null)
             {
                 return NotFound();
             }
 
-            var lesson = await _context.Lessons
-                .Include(l => l.Classroom)
-                .Include(l => l.Discipline)
-                .Include(l => l.DisciplineType)
-                .Include(l => l.LessonTime)
-                .Include(l => l.StudentsGroup)
-                .Include(l => l.Teacher)
-                .FirstOrDefaultAsync(m => m.LessonId == id);
+            var lesson = _context.Lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
+                .FirstOrDefault(l => l.LessonId == id);
             if (lesson == null)
             {
                 return NotFound();
@@ -208,6 +211,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             if (_context.Lessons == null)
             {
                 return Problem("Entity set 'LessonsDbContext.Lessons'  is null.");
@@ -216,8 +221,9 @@ namespace Study.Controllers
             if (lesson != null)
             {
                 _context.Lessons.Remove(lesson);
+                cache.SetLessons();
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -227,7 +233,7 @@ namespace Study.Controllers
             return _context.Lessons.Any(e => e.LessonId == id);
         }
         private IQueryable<Lesson> Sort_Search(IQueryable<Lesson> lessons, SortState sortOrder, string searchDisciplineName, string searchTeacher, TimeSpan searchLessonTime,
-            string searchFacility, int searchClassroom, string searchStudentGroup, string searchDisciplineType, int searchYear, int searchDayofWeek, int searchSemestr,DateTime searchDate)
+            string searchFacility, int searchClassroom, string searchStudentGroup, string searchDisciplineType, int searchYear, int searchDayofWeek, int searchSemestr, DateTime? searchDate)
         {
             switch (sortOrder)
             {
@@ -292,18 +298,18 @@ namespace Study.Controllers
                     lessons = lessons.OrderByDescending(s => s.LessonDate);
                     break;
             }
-             lessons = lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
-            .Where(o => o.Discipline.DisciplineName.Contains(searchDisciplineName ?? "") 
-            &  o.Teacher.TeacherName.Contains(searchTeacher ?? "") 
-            & (o.Classroom.NumberOfClassroom == searchClassroom || searchClassroom == 0)
-            & (o.Year == searchYear || searchYear == 0)
-            & (o.DayOfweek == searchDayofWeek || searchDayofWeek == 0)
-            & (o.Semestr== searchSemestr || searchSemestr == 0)
-            & (o.StudentsGroup.Facility.FacilityName.Contains(searchFacility ?? ""))
-            & (o.StudentsGroup.NumberOfGroup.Contains(searchStudentGroup ?? ""))
-            & (o.DisciplineType.TypeOfDiscipline.Contains(searchDisciplineType ?? ""))
-            & (o.LessonDate == searchDate || searchDate == new DateTime())
-            & (o.LessonTime.LessonTime == searchLessonTime || searchLessonTime == new TimeSpan()));
+            lessons = lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
+           .Where(o => o.Discipline.DisciplineName.Contains(searchDisciplineName ?? "")
+           & o.Teacher.TeacherName.Contains(searchTeacher ?? "")
+           & (o.Classroom.NumberOfClassroom == searchClassroom || searchClassroom == 0)
+           & (o.Year == searchYear || searchYear == 0)
+           & (o.DayOfweek == searchDayofWeek || searchDayofWeek == 0)
+           & (o.Semestr == searchSemestr || searchSemestr == 0)
+           & (o.StudentsGroup.Facility.FacilityName.Contains(searchFacility ?? ""))
+           & (o.StudentsGroup.NumberOfGroup.Contains(searchStudentGroup ?? ""))
+           & (o.DisciplineType.TypeOfDiscipline.Contains(searchDisciplineType ?? ""))
+           & (o.LessonDate == searchDate || searchDate == new DateTime() || searchDate == null)
+           & (o.LessonTime.LessonTime == searchLessonTime || searchLessonTime == new TimeSpan()));
 
             return lessons;
         }

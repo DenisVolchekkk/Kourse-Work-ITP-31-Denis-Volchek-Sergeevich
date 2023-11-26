@@ -11,12 +11,18 @@
 @if (User.IsInRole("admin"))
 {
     <p>
-        <a asp-action="Create">Create New</a>
+        <a class="link-success" asp-action="Create">Добавить</a>
     </p>
 }
 <form action="@Url.Action("Index", "Teachers")" method="post">
-    Учитель: @Html.TextBox("TeacherName", TeacherName, new { style = "width: 100px;"})
-    <input type="submit" value="Найти" />
+    <div class="row g-3">
+        <div class="col-auto">
+            @Html.TextBox("TeacherName", TeacherName, new {placeholder="Учитель", style = "width: 100px;",@class="form-control custom-font-size"})
+        </div>
+        <div class="col-auto">
+            <input class="btn btn-outline-primary" style="margin-left: 10px" type="submit" value="Найти" />
+        </div>
+    </div>
 </form>
 <table class="table">
     <thead>
@@ -35,20 +41,20 @@
             <td>
                 @Html.DisplayFor(modelItem => item.TeacherName)
             </td>
-                @if (User.IsInRole("admin"))
-                {
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.TeacherId">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.TeacherId">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.TeacherId">Delete</a>
-                    </td>
-                }
-                else
-                {
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.TeacherId">Details</a>
-                    </td>
-                }
+            @if (User.IsInRole("admin"))
+            {
+                <td>
+                    <a class="link-warning" asp-action="Edit" asp-route-id="@item.TeacherId">Обновить</a> |
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.TeacherId">Детали</a> |
+                    <a class="link-danger" asp-action="Delete" asp-route-id="@item.TeacherId">Удалить</a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    <a class="link-info" asp-action="Details" asp-route-id="@item.TeacherId">Детали</a> |
+                </td>
+            }
         </tr>
 }
     </tbody>
