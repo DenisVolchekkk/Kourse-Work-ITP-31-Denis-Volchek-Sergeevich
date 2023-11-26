@@ -82,7 +82,6 @@ namespace Study.Controllers
         // GET: Lessons/Create
         public IActionResult Create()
         {
-            var cache = HttpContext.RequestServices.GetService<LessonService>();
             ViewData["ClassroomId"] = new SelectList(_context.Classrooms, "ClassroomId", "NumberOfClassroom");
             ViewData["DisciplineId"] = new SelectList(_context.Disciplines, "DisciplineId", "DisciplineName");
             ViewData["DisciplineTypeId"] = new SelectList(_context.DisciplineTypes, "DisciplineTypeId", "TypeOfDiscipline");
@@ -103,6 +102,8 @@ namespace Study.Controllers
 
             if (ModelState.IsValid)
             {
+                lesson.Year = lesson.LessonDate.Value.Year;
+                lesson.DayOfweek = ((int)lesson.LessonDate.Value.DayOfWeek + 6) % 7 + 1;
                 _context.Add(lesson);
                 await _context.SaveChangesAsync();
                 cache.SetLessons();
@@ -159,6 +160,8 @@ namespace Study.Controllers
             {
                 try
                 {
+                    lesson.Year = lesson.LessonDate.Value.Year;
+                    lesson.DayOfweek = ((int)lesson.LessonDate.Value.DayOfWeek + 6) % 7 + 1;
                     _context.Update(lesson);
                     await _context.SaveChangesAsync();
                     cache.SetLessons();
