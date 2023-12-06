@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -24,13 +21,15 @@ namespace Study.Controllers
         // GET: DisciplineTypes
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             DisciplinesViewModel disciplines;
             var discipline = HttpContext.Session.Get<DisciplinesViewModel>("Discipline");
             if (discipline == null)
             {
                 discipline = new DisciplinesViewModel();
             }
-            IQueryable<Discipline> disciplineDbContext = _context.Disciplines;
+            IEnumerable<Discipline> disciplineDbContext = cache.GetDisciplines();
             disciplineDbContext = Sort_Search(disciplineDbContext, sortOrder, discipline.DisciplineName ?? "");
             // Разбиение на страницы
             var count = disciplineDbContext.Count();
@@ -57,13 +56,15 @@ namespace Study.Controllers
         // GET: Disciplines/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (id == null || _context.Disciplines == null)
             {
                 return NotFound();
             }
 
-            var discipline = await _context.Disciplines
-                .FirstOrDefaultAsync(m => m.DisciplineId == id);
+            var discipline = cache.GetDisciplines()
+                .FirstOrDefault(m => m.DisciplineId == id);
             if (discipline == null)
             {
                 return NotFound();
@@ -85,10 +86,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DisciplineId,DisciplineName")] Discipline discipline)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(discipline);
                 await _context.SaveChangesAsync();
+                cache.SetDisciplines();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(discipline);
@@ -97,12 +102,15 @@ namespace Study.Controllers
         // GET: Disciplines/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (id == null || _context.Disciplines == null)
             {
                 return NotFound();
             }
 
-            var discipline = await _context.Disciplines.FindAsync(id);
+            var discipline = cache.GetDisciplines()
+                .FirstOrDefault(m => m.DisciplineId == id);
             if (discipline == null)
             {
                 return NotFound();
@@ -117,6 +125,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("DisciplineId,DisciplineName")] Discipline discipline)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (id != discipline.DisciplineId)
             {
                 return NotFound();
@@ -128,6 +138,9 @@ namespace Study.Controllers
                 {
                     _context.Update(discipline);
                     await _context.SaveChangesAsync();
+                    cache.SetDisciplines();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -148,13 +161,14 @@ namespace Study.Controllers
         // GET: Disciplines/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (id == null || _context.Disciplines == null)
             {
                 return NotFound();
             }
-
-            var discipline = await _context.Disciplines
-                .FirstOrDefaultAsync(m => m.DisciplineId == id);
+            var discipline = cache.GetDisciplines()
+                .FirstOrDefault(m => m.DisciplineId == id);
             if (discipline == null)
             {
                 return NotFound();
@@ -168,11 +182,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineService>();
+
             if (_context.Disciplines == null)
             {
                 return Problem("Entity set 'LessonsDbContext.Disciplines'  is null.");
             }
-            var discipline = await _context.Disciplines.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.DisciplineId == id);
+            var discipline = cache.GetDisciplines()
+                .FirstOrDefault(m => m.DisciplineId == id); 
             if (discipline != null)
             {
                 _context.Disciplines.Remove(discipline);
@@ -180,6 +197,9 @@ namespace Study.Controllers
             }
             
             await _context.SaveChangesAsync();
+            cache.SetDisciplines();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -187,7 +207,7 @@ namespace Study.Controllers
         {
           return (_context.Disciplines?.Any(e => e.DisciplineId == id)).GetValueOrDefault();
         }
-        private IQueryable<Discipline> Sort_Search(IQueryable<Discipline> disciplines, SortState sortOrder, string searchDiscipline)
+        private IEnumerable<Discipline> Sort_Search(IEnumerable<Discipline> disciplines, SortState sortOrder, string searchDiscipline)
         {
             switch (sortOrder)
             {

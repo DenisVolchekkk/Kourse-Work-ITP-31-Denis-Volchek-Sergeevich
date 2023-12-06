@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -25,13 +22,15 @@ namespace Study.Controllers
         // GET: DisciplineTypes
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             LessonTimesViewModel lessonTimes;
             var lessonTime = HttpContext.Session.Get<LessonTimesViewModel>("LessonTime");
             if (lessonTime == null)
             {
                 lessonTime = new LessonTimesViewModel();
             }
-            IQueryable<LessonsTime> lessonTimeDbContext = _context.LessonsTimes;
+            IEnumerable<LessonsTime> lessonTimeDbContext = cache.GetLessonsTimes();
             lessonTimeDbContext = Sort_Search(lessonTimeDbContext, sortOrder, lessonTime.LessonTime);
             // Разбиение на страницы
             var count = lessonTimeDbContext.Count();
@@ -59,13 +58,15 @@ namespace Study.Controllers
         // GET: LessonsTimes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (id == null || _context.LessonsTimes == null)
             {
                 return NotFound();
             }
 
-            var lessonsTime = await _context.LessonsTimes
-                .FirstOrDefaultAsync(m => m.LessonTimeId == id);
+            var lessonsTime = cache.GetLessonsTimes()
+                .FirstOrDefault(m => m.LessonTimeId == id);
             if (lessonsTime == null)
             {
                 return NotFound();
@@ -87,10 +88,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("LessonTimeId,LessonTime")] LessonsTime lessonsTime)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(lessonsTime);
                 await _context.SaveChangesAsync();
+                cache.SetLessonsTimes();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(lessonsTime);
@@ -99,13 +104,15 @@ namespace Study.Controllers
         // GET: LessonsTimes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (id == null || _context.LessonsTimes == null)
             {
                 return NotFound();
             }
 
-            var lessonsTime = await _context.LessonsTimes.FindAsync(id);
-            if (lessonsTime == null)
+            var lessonsTime = cache.GetLessonsTimes()
+                 .FirstOrDefault(m => m.LessonTimeId == id); if (lessonsTime == null)
             {
                 return NotFound();
             }
@@ -119,6 +126,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("LessonTimeId,LessonTime")] LessonsTime lessonsTime)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (id != lessonsTime.LessonTimeId)
             {
                 return NotFound();
@@ -130,6 +139,10 @@ namespace Study.Controllers
                 {
                     _context.Update(lessonsTime);
                     await _context.SaveChangesAsync();
+                    cache.SetLessonsTimes();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -150,13 +163,15 @@ namespace Study.Controllers
         // GET: LessonsTimes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (id == null || _context.LessonsTimes == null)
             {
                 return NotFound();
             }
 
-            var lessonsTime = await _context.LessonsTimes
-                .FirstOrDefaultAsync(m => m.LessonTimeId == id);
+            var lessonsTime = cache.GetLessonsTimes()
+                 .FirstOrDefault(m => m.LessonTimeId == id);
             if (lessonsTime == null)
             {
                 return NotFound();
@@ -170,12 +185,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonsTimeService>();
+
             if (_context.LessonsTimes == null)
             {
                 return Problem("Entity set 'LessonsDbContext.LessonsTimes'  is null.");
             }
-            var lessonsTime = await _context.LessonsTimes.Include(c => c.Lessons)
-                .FirstOrDefaultAsync(m => m.LessonTimeId == id);
+            var lessonsTime = cache.GetLessonsTimes()
+                 .FirstOrDefault(m => m.LessonTimeId == id);
             if (lessonsTime != null)
             {
                 _context.LessonsTimes.Remove(lessonsTime);
@@ -184,6 +201,9 @@ namespace Study.Controllers
             }
 
             await _context.SaveChangesAsync();
+            cache.SetLessonsTimes();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -191,14 +211,14 @@ namespace Study.Controllers
         {
           return (_context.LessonsTimes?.Any(e => e.LessonTimeId == id)).GetValueOrDefault();
         }
-        private IQueryable<LessonsTime> Sort_Search(IQueryable<LessonsTime> lessonsTimes, SortState sortOrder, TimeSpan searchLessonTime)
+        private IEnumerable<LessonsTime> Sort_Search(IEnumerable<LessonsTime> lessonsTimes, SortState sortOrder, TimeSpan searchLessonTime)
         {
             switch (sortOrder)
             {
-                case SortState.DisciplineNameAsc:
+                case SortState.LessonTimeAsc:
                     lessonsTimes = lessonsTimes.OrderBy(s => s.LessonTime);
                     break;
-                case SortState.DisciplineNameDesc:
+                case SortState.LessonTimeDesc:
                     lessonsTimes = lessonsTimes.OrderByDescending(s => s.LessonTime);
                     break;
             }

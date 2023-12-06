@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -26,13 +22,14 @@ namespace Study.Controllers
         // GET: facilityTypes
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
             FacilitiesViewModel facilitys;
             var facility = HttpContext.Session.Get<FacilitiesViewModel>("Facility");
             if (facility == null)
             {
                 facility = new FacilitiesViewModel();
             }
-            IQueryable<Facility> facilityDbContext = _context.Facilities;
+            IEnumerable<Facility> facilityDbContext = cache.GetFacilities();
             facilityDbContext = Sort_Search(facilityDbContext, sortOrder, facility.FacilityName ?? "");
             // Разбиение на страницы
             var count = facilityDbContext.Count();
@@ -60,13 +57,15 @@ namespace Study.Controllers
         // GET: Facilities/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+
             if (id == null || _context.Facilities == null)
             {
                 return NotFound();
             }
 
-            var facility = await _context.Facilities
-                .FirstOrDefaultAsync(m => m.FacilityId == id);
+            var facility = cache.GetFacilities()
+                .FirstOrDefault(m => m.FacilityId == id);
             if (facility == null)
             {
                 return NotFound();
@@ -88,10 +87,13 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("FacilityId,FacilityName")] Facility facility)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(facility);
                 await _context.SaveChangesAsync();
+                cache.SetFacilities();
                 return RedirectToAction(nameof(Index));
             }
             return View(facility);
@@ -100,12 +102,15 @@ namespace Study.Controllers
         // GET: Facilities/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+
             if (id == null || _context.Facilities == null)
             {
                 return NotFound();
             }
 
-            var facility = await _context.Facilities.FindAsync(id);
+            var facility = cache.GetFacilities()
+                .FirstOrDefault(m => m.FacilityId == id);
             if (facility == null)
             {
                 return NotFound();
@@ -120,6 +125,9 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("FacilityId,FacilityName")] Facility facility)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+            var cacheSG = HttpContext.RequestServices.GetService<StudentsGroupService>();
+            var cacheL = HttpContext.RequestServices.GetService<LessonService>();
             if (id != facility.FacilityId)
             {
                 return NotFound();
@@ -131,6 +139,9 @@ namespace Study.Controllers
                 {
                     _context.Update(facility);
                     await _context.SaveChangesAsync();
+                    cache.SetFacilities();
+                    cacheSG.SetStudentsGroups();
+                    cacheL.SetLessons();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -151,13 +162,15 @@ namespace Study.Controllers
         // GET: Facilities/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+
             if (id == null || _context.Facilities == null)
             {
                 return NotFound();
             }
 
-            var facility = await _context.Facilities
-                .FirstOrDefaultAsync(m => m.FacilityId == id);
+            var facility = cache.GetFacilities()
+                .FirstOrDefault(m => m.FacilityId == id);
             if (facility == null)
             {
                 return NotFound();
@@ -171,24 +184,42 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<FacilityService>();
+            var cacheSG = HttpContext.RequestServices.GetService<StudentsGroupService>();
+            var cacheL = HttpContext.RequestServices.GetService<LessonService>();
             if (_context.Facilities == null)
             {
                 return Problem("Entity set 'LessonsDbContext.Facilities'  is null.");
             }
-            var facility = await _context.Facilities.Include(c => c.StudentsGroups).FirstOrDefaultAsync(c => c.FacilityId == id);
-            var studentGroups =   _context.StudentsGroups.Include(c => c.Lessons).Where(c => c.FacilityId == id).ToList();
+            var facility = cache.GetFacilities()
+.FirstOrDefault(m => m.FacilityId == id);
+            var studentGroups =   cacheSG.GetStudentsGroups().Where(c => c.FacilityId == id);
             if (facility != null)
             {
-                _context.Facilities.Remove(facility);
-                _context.StudentsGroups.RemoveRange(facility.StudentsGroups);
-                foreach(var studentGroup in studentGroups)
+                foreach (var studentGroup in studentGroups)
                 {
                     _context.Lessons.RemoveRange(studentGroup.Lessons);
                 }
+                _context.SaveChanges();
+                cache.SetFacilities();
+                cacheSG.SetStudentsGroups();
+                facility = cache.GetFacilities()
+.FirstOrDefault(m => m.FacilityId == id);
+                _context.StudentsGroups.RemoveRange(facility.StudentsGroups);
+                cache.SetFacilities();
+                cacheSG.SetStudentsGroups();
+                await _context.SaveChangesAsync();
+
+                _context.Facilities.Remove(facility);
+               
+
 
             }
 
             await _context.SaveChangesAsync();
+            cache.SetFacilities();
+            cacheSG.SetStudentsGroups();
+            cacheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -196,11 +227,11 @@ namespace Study.Controllers
         {
           return (_context.Facilities?.Any(e => e.FacilityId == id)).GetValueOrDefault();
         }
-        private IQueryable<Facility> Sort_Search(IQueryable<Facility> facilities, SortState sortOrder, string searchFacility)
+        private IEnumerable<Facility> Sort_Search(IEnumerable<Facility> facilities, SortState sortOrder, string searchFacility)
         {
             switch (sortOrder)
             {
-                case SortState.FacilityNameAsc:
+                case SortState.FacilityNameAsc: 
                     facilities = facilities.OrderBy(s => s.FacilityName);
                     break;
                 case SortState.FacilityNameDesc:

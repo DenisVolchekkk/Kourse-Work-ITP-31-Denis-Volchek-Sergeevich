@@ -20,4 +20,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.16" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Univercity.Application\Univercity.Application.csproj" />
+    <ProjectReference Include="..\Univercity.Persistence\Univercity.Persistence.csproj" />
+  </ItemGroup>
+
 </Project>

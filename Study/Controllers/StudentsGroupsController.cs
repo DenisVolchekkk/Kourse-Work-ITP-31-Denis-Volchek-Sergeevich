@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
-using System.Drawing.Printing;
+using Study.Extensions;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
+using Study.Services;
 
 namespace Study.Controllers
 {
@@ -24,13 +24,14 @@ namespace Study.Controllers
         // GET: facilityTypes
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
             StudentsGroupViewModel studentsGroups;
             var studentsGroup = HttpContext.Session.Get<StudentsGroupViewModel>("StudentGroup");
             if (studentsGroup == null)
             {
                 studentsGroup = new StudentsGroupViewModel();
             }
-            IQueryable<StudentsGroup> studentGroupDbContext = _context.StudentsGroups;
+            IEnumerable<StudentsGroup> studentGroupDbContext = cache.GetStudentsGroups();
             studentGroupDbContext = Sort_Search(studentGroupDbContext, sortOrder, studentsGroup.Facility ?? "", studentsGroup.NumberOfGroup ?? "");
             // Разбиение на страницы
             var count = studentGroupDbContext.Count();
@@ -59,14 +60,15 @@ namespace Study.Controllers
         // GET: StudentsGroups/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (id == null || _context.StudentsGroups == null)
             {
                 return NotFound();
             }
 
-            var studentsGroup = await _context.StudentsGroups
-                .Include(s => s.Facility)
-                .FirstOrDefaultAsync(m => m.StudentsGroupId == id);
+            var studentsGroup = cache.GetStudentsGroups()
+                .FirstOrDefault(m => m.StudentsGroupId == id);
             if (studentsGroup == null)
             {
                 return NotFound();
@@ -87,12 +89,16 @@ namespace Study.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StudentsGroupId,NumberOfGroup,QuantityOfStudents,FacilityName")] StudentsGroup studentsGroup)
+        public async Task<IActionResult> Create([Bind("StudentsGroupId,NumberOfGroup,QuantityOfStudents,FacilityId")] StudentsGroup studentsGroup)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(studentsGroup);
                 await _context.SaveChangesAsync();
+                cache.SetStudentsGroups();
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["FacilityId"] = new SelectList(_context.Facilities, "FacilityId", "FacilityName", studentsGroup.FacilityId);
@@ -102,13 +108,15 @@ namespace Study.Controllers
         // GET: StudentsGroups/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (id == null || _context.StudentsGroups == null)
             {
                 return NotFound();
             }
 
-            var studentsGroup = await _context.StudentsGroups.FindAsync(id);
-            if (studentsGroup == null)
+            var studentsGroup = cache.GetStudentsGroups()
+                .FirstOrDefault(m => m.StudentsGroupId == id); if (studentsGroup == null)
             {
                 return NotFound();
             }
@@ -123,6 +131,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("StudentsGroupId,NumberOfGroup,QuantityOfStudents,FacilityId")] StudentsGroup studentsGroup)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (id != studentsGroup.StudentsGroupId)
             {
                 return NotFound();
@@ -134,6 +144,9 @@ namespace Study.Controllers
                 {
                     _context.Update(studentsGroup);
                     await _context.SaveChangesAsync();
+                    cache.SetStudentsGroups();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -155,14 +168,15 @@ namespace Study.Controllers
         // GET: StudentsGroups/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (id == null || _context.StudentsGroups == null)
             {
                 return NotFound();
             }
 
-            var studentsGroup = await _context.StudentsGroups
-                .Include(s => s.Facility)
-                .FirstOrDefaultAsync(m => m.StudentsGroupId == id);
+            var studentsGroup = cache.GetStudentsGroups()
+                .FirstOrDefault(m => m.StudentsGroupId == id);
             if (studentsGroup == null)
             {
                 return NotFound();
@@ -176,19 +190,26 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<StudentsGroupService>();
+
             if (_context.StudentsGroups == null)
             {
                 return Problem("Entity set 'LessonsDbContext.StudentsGroups'  is null.");
             }
-            var studentsGroup = await _context.StudentsGroups.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.StudentsGroupId == id);
+            var studentsGroup = cache.GetStudentsGroups()
+                .FirstOrDefault(m => m.StudentsGroupId == id);
             if (studentsGroup != null)
             {
-                _context.StudentsGroups.Remove(studentsGroup);
                 _context.Lessons.RemoveRange(studentsGroup.Lessons);
+                _context.StudentsGroups.Remove(studentsGroup);
+                
 
             }
 
             await _context.SaveChangesAsync();
+            cache.SetStudentsGroups();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -196,7 +217,7 @@ namespace Study.Controllers
         {
           return (_context.StudentsGroups?.Any(e => e.StudentsGroupId == id)).GetValueOrDefault();
         }
-        private IQueryable<StudentsGroup> Sort_Search(IQueryable<StudentsGroup> studentsGroups, SortState sortOrder, string searchFacility, string searchStudentGroup)
+        private IEnumerable<StudentsGroup> Sort_Search(IEnumerable<StudentsGroup> studentsGroups, SortState sortOrder, string searchFacility, string searchStudentGroup)
         {
             switch (sortOrder)
             {
@@ -213,7 +234,7 @@ namespace Study.Controllers
                     studentsGroups = studentsGroups.OrderByDescending(s => s.Facility.FacilityName);
                     break;
             }
-            studentsGroups = studentsGroups.Include(l => l.Facility)
+            studentsGroups = studentsGroups
            .Where(o => o.Facility.FacilityName.Contains(searchFacility ?? "") 
            & (o.NumberOfGroup.Contains(searchStudentGroup ?? "")));
 

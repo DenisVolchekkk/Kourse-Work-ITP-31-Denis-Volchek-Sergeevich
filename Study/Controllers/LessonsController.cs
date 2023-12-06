@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
+using Study.Extensions;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
 using Study.Services;
-using Study.ViewModels;
-using System.Linq;
-using System;
-using System.Collections.Generic;
-using SessionExtensions = Study.Filters.SessionExtensions;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -27,13 +24,15 @@ namespace Study.Controllers
         //[SetToSession("Less")]
         public IActionResult Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<LessonService>();
+
             LessonsViewModel lessons;
             var lesson = HttpContext.Session.Get<FilterLessonViewModel>("Lesson");
             if (lesson == null)
             {
                 lesson = new FilterLessonViewModel();
             }
-            IQueryable<Lesson> lessonsDbContext = _context.Lessons;
+            IEnumerable<Lesson> lessonsDbContext = cache.GetLessons();
             lessonsDbContext = Sort_Search(lessonsDbContext, sortOrder, lesson.Discipline ?? "", lesson.Teacher ?? "", lesson.LessonTime, lesson.Facility ?? "", lesson.Classroom,
                 lesson.StudentGroup ?? "", lesson.DisciplineType ?? "", lesson.Year, lesson.DayOfweek, lesson.Semestr, lesson.LessonDate);
             // Разбиение на страницы
@@ -69,7 +68,7 @@ namespace Study.Controllers
                 return NotFound();
             }
 
-            var lesson =  _context.Lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
+            var lesson = _context.Lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
                 .FirstOrDefault(m => m.LessonId == id);
             if (lesson == null)
             {
@@ -128,7 +127,7 @@ namespace Study.Controllers
                 return NotFound();
             }
 
-            var lesson =  cache.GetLessons().FirstOrDefault(m => m.LessonId == id);
+            var lesson = cache.GetLessons().FirstOrDefault(m => m.LessonId == id);
             if (lesson == null)
             {
                 return NotFound();
@@ -165,7 +164,7 @@ namespace Study.Controllers
                     _context.Update(lesson);
                     await _context.SaveChangesAsync();
                     cache.SetLessons();
-                    
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -199,8 +198,7 @@ namespace Study.Controllers
                 return NotFound();
             }
 
-            var lesson = _context.Lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
-                .FirstOrDefault(l => l.LessonId == id);
+            var lesson = cache.GetLessons().FirstOrDefault(l => l.LessonId == id);
             if (lesson == null)
             {
                 return NotFound();
@@ -220,7 +218,7 @@ namespace Study.Controllers
             {
                 return Problem("Entity set 'LessonsDbContext.Lessons'  is null.");
             }
-            var lesson = await _context.Lessons.FindAsync(id);
+            var lesson = cache.GetLessons().FirstOrDefault(l => l.LessonId == id);
             if (lesson != null)
             {
                 _context.Lessons.Remove(lesson);
@@ -235,7 +233,7 @@ namespace Study.Controllers
         {
             return _context.Lessons.Any(e => e.LessonId == id);
         }
-        private IQueryable<Lesson> Sort_Search(IQueryable<Lesson> lessons, SortState sortOrder, string searchDisciplineName, string searchTeacher, TimeSpan searchLessonTime,
+        private IEnumerable<Lesson> Sort_Search(IEnumerable<Lesson> lessons, SortState sortOrder, string searchDisciplineName, string searchTeacher, TimeSpan searchLessonTime,
             string searchFacility, int searchClassroom, string searchStudentGroup, string searchDisciplineType, int searchYear, int searchDayofWeek, int searchSemestr, DateTime? searchDate)
         {
             switch (sortOrder)
@@ -301,7 +299,7 @@ namespace Study.Controllers
                     lessons = lessons.OrderByDescending(s => s.LessonDate);
                     break;
             }
-            lessons = lessons.Include(l => l.Classroom).Include(l => l.Discipline).Include(l => l.DisciplineType).Include(l => l.LessonTime).Include(l => l.StudentsGroup).Include(l => l.Teacher)
+            lessons = lessons
            .Where(o => o.Discipline.DisciplineName.Contains(searchDisciplineName ?? "")
            & o.Teacher.TeacherName.Contains(searchTeacher ?? "")
            & (o.Classroom.NumberOfClassroom == searchClassroom || searchClassroom == 0)

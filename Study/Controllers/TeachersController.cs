@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -23,13 +20,15 @@ namespace Study.Controllers
 
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             TeachersViewModel teachers;
             var teacher = HttpContext.Session.Get<TeachersViewModel>("Teacher");
             if (teacher == null)
             {
                 teacher = new TeachersViewModel();
             }
-            IQueryable<Teacher> teacherDbContext = _context.Teachers;
+            IEnumerable<Teacher> teacherDbContext = cache.GetTeachers();
             teacherDbContext = Sort_Search(teacherDbContext, sortOrder, teacher.TeacherName ?? "");
             // Разбиение на страницы
             var count = teacherDbContext.Count();
@@ -57,13 +56,15 @@ namespace Study.Controllers
         // GET: Teachers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (id == null || _context.Teachers == null)
             {
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers
-                .FirstOrDefaultAsync(m => m.TeacherId == id);
+            var teacher = cache.GetTeachers()
+                .FirstOrDefault(m => m.TeacherId == id);
             if (teacher == null)
             {
                 return NotFound();
@@ -85,10 +86,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("TeacherId,TeacherName")] Teacher teacher)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(teacher);
                 await _context.SaveChangesAsync();
+                cache.SetTeachers();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(teacher);
@@ -97,13 +102,15 @@ namespace Study.Controllers
         // GET: Teachers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (id == null || _context.Teachers == null)
             {
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers.FindAsync(id);
-            if (teacher == null)
+            var teacher = cache.GetTeachers()
+                .FirstOrDefault(m => m.TeacherId == id); if (teacher == null)
             {
                 return NotFound();
             }
@@ -117,6 +124,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("TeacherId,TeacherName")] Teacher teacher)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (id != teacher.TeacherId)
             {
                 return NotFound();
@@ -128,6 +137,9 @@ namespace Study.Controllers
                 {
                     _context.Update(teacher);
                     await _context.SaveChangesAsync();
+                    cache.SetTeachers();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -148,13 +160,15 @@ namespace Study.Controllers
         // GET: Teachers/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (id == null || _context.Teachers == null)
             {
                 return NotFound();
             }
 
-            var teacher = await _context.Teachers
-                .FirstOrDefaultAsync(m => m.TeacherId == id);
+            var teacher = cache.GetTeachers()
+                .FirstOrDefault(m => m.TeacherId == id);
             if (teacher == null)
             {
                 return NotFound();
@@ -168,11 +182,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<TeacherService>();
+
             if (_context.Teachers == null)
             {
                 return Problem("Entity set 'LessonsDbContext.Teachers'  is null.");
             }
-            var teacher = await _context.Teachers.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.TeacherId == id);
+            var teacher = cache.GetTeachers()
+                .FirstOrDefault(m => m.TeacherId == id);
             if (teacher != null)
             {
                 _context.Teachers.Remove(teacher);
@@ -181,6 +198,9 @@ namespace Study.Controllers
             }
 
             await _context.SaveChangesAsync();
+            cache.SetTeachers();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -188,7 +208,7 @@ namespace Study.Controllers
         {
           return (_context.Teachers?.Any(e => e.TeacherId == id)).GetValueOrDefault();
         }
-        private IQueryable<Teacher> Sort_Search(IQueryable<Teacher> teachers, SortState sortOrder, string searchTeacher)
+        private IEnumerable<Teacher> Sort_Search(IEnumerable<Teacher> teachers, SortState sortOrder, string searchTeacher)
         {
             switch (sortOrder)
             {

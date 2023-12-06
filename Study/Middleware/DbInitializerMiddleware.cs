@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Internal;
-using Study.Data;
-using Study.Models;
+using Univercity.Persistence;
 
 namespace Study.Middleware
 {

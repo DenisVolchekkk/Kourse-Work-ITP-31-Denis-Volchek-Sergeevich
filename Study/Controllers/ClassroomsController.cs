@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
-using System.Drawing.Printing;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -24,6 +23,8 @@ namespace Study.Controllers
         //[SetToSession("Less")]
         public IActionResult Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             ClassroomsViewModel classrooms;
             var classroom = HttpContext.Session.Get<ClassroomsViewModel>("Classroom");
             if (classroom == null)
@@ -31,7 +32,7 @@ namespace Study.Controllers
                 classroom = new ClassroomsViewModel();
                 
             }
-            IQueryable<Classroom> classroomsDbContext = _context.Classrooms;
+            IEnumerable<Classroom> classroomsDbContext = cache.GetClassrooms();
             classroomsDbContext = Sort_Search(classroomsDbContext, sortOrder, classroom.NumberOfClassroom);
             // Разбиение на страницы
             var count = classroomsDbContext.Count();
@@ -50,6 +51,8 @@ namespace Study.Controllers
         //[SetToSession("Less")]
         public IActionResult ClassroomByLessonTime(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             ClassroomsViewModel classrooms;
             var classroomByLessonTime = HttpContext.Session.Get<ClassroomsViewModel>("ClassroomByLessonTime");
             if (classroomByLessonTime == null)
@@ -57,7 +60,7 @@ namespace Study.Controllers
                 classroomByLessonTime = new ClassroomsViewModel();
 
             }
-            IQueryable<Classroom> classroomsDbContext = _context.Classrooms;
+            IEnumerable<Classroom> classroomsDbContext = cache.GetClassrooms();
             classroomsDbContext = Sort_SearchByTime(classroomsDbContext, sortOrder, classroomByLessonTime.ClassroomType, classroomByLessonTime.LessonTime, classroomByLessonTime.LessonDate);
             // Разбиение на страницы
             var count = classroomsDbContext.Count();
@@ -94,13 +97,15 @@ namespace Study.Controllers
         // GET: Classrooms/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (id == null || _context.Classrooms == null)
             {
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms
-                .FirstOrDefaultAsync(m => m.ClassroomId == id);
+            var classroom = cache.GetClassrooms()
+                .FirstOrDefault(m => m.ClassroomId == id);
             if (classroom == null)
             {
                 return NotFound();
@@ -122,10 +127,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ClassroomId,NumberOfClassroom,Places,Wing,ClassroomType")] Classroom classroom)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(classroom);
                 await _context.SaveChangesAsync();
+                cache.SetClassrooms();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(classroom);
@@ -134,12 +143,15 @@ namespace Study.Controllers
         // GET: Classrooms/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (id == null || _context.Classrooms == null)
             {
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms.FindAsync(id);
+            var classroom = cache.GetClassrooms()
+                .FirstOrDefault(m => m.ClassroomId == id);
             if (classroom == null)
             {
                 return NotFound();
@@ -154,6 +166,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ClassroomId,NumberOfClassroom,Places,Wing,ClassroomType")] Classroom classroom)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (id != classroom.ClassroomId)
             {
                 return NotFound();
@@ -165,6 +179,10 @@ namespace Study.Controllers
                 {
                     _context.Update(classroom);
                     await _context.SaveChangesAsync();
+                    cache.SetClassrooms();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -185,13 +203,15 @@ namespace Study.Controllers
         // GET: Classrooms/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (id == null || _context.Classrooms == null)
             {
                 return NotFound();
             }
 
-            var classroom = await _context.Classrooms
-                .FirstOrDefaultAsync(m => m.ClassroomId == id);
+            var classroom = cache.GetClassrooms()
+                .FirstOrDefault(m => m.ClassroomId == id);
             if (classroom == null)
             {
                 return NotFound();
@@ -205,11 +225,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<ClassroomService>();
+
             if (_context.Classrooms == null)
             {
                 return Problem("Entity set 'LessonsDbContext.Classrooms'  is null.");
             }
-            var classroom = await _context.Classrooms.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.ClassroomId == id);
+            var classroom = cache.GetClassrooms()
+                .FirstOrDefault(m => m.ClassroomId == id);
             if (classroom != null)
             {
 
@@ -218,6 +241,9 @@ namespace Study.Controllers
             }
             
             await _context.SaveChangesAsync();
+            cache.SetClassrooms();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -225,7 +251,7 @@ namespace Study.Controllers
         {
           return (_context.Classrooms?.Any(e => e.ClassroomId == id)).GetValueOrDefault();
         }
-        private IQueryable<Classroom> Sort_Search(IQueryable<Classroom> classrooms, SortState sortOrder, int searchClassroom)
+        private IEnumerable<Classroom> Sort_Search(IEnumerable<Classroom> classrooms, SortState sortOrder, int searchClassroom)
         {
             switch (sortOrder)
             {
@@ -240,7 +266,7 @@ namespace Study.Controllers
 
             return classrooms;
         }
-        private IQueryable<Classroom> Sort_SearchByTime(IQueryable<Classroom> classrooms, SortState sortOrder, string searchClassroomType, TimeSpan searchLessonTime,DateTime? searchDate)
+        private IEnumerable<Classroom> Sort_SearchByTime(IEnumerable<Classroom> classrooms, SortState sortOrder, string searchClassroomType, TimeSpan searchLessonTime,DateTime? searchDate)
         {
             switch (sortOrder)
             {
@@ -251,7 +277,7 @@ namespace Study.Controllers
                     classrooms = classrooms.OrderByDescending(s => s.NumberOfClassroom);
                     break;
             }
-            var unavailableClassrooms =classrooms
+            var unavailableClassrooms = classrooms
             .Where(c => !c.Lessons.Any(l =>
                 l.LessonTime.LessonTime == searchLessonTime  
                 && l.LessonDate == searchDate

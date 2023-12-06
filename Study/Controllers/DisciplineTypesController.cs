@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Study.Filters;
-using Study.Models;
-using Study.ViewModels;
+using Study.Extensions;
+using Study.Services;
+using Univercity.Application.ViewModels;
+using Univercity.Domain;
+using Univercity.Persistence;
 
 namespace Study.Controllers
 {
@@ -26,13 +21,15 @@ namespace Study.Controllers
         // GET: DisciplineTypes
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             DisciplineTypeViewModel disciplines;
             var disciplineType = HttpContext.Session.Get<DisciplineTypeViewModel>("DisciplineType");
             if (disciplineType == null)
             {
                 disciplineType = new DisciplineTypeViewModel();
             }
-            IQueryable<DisciplineType> disciplineTypeDbContext = _context.DisciplineTypes;
+            IEnumerable<DisciplineType> disciplineTypeDbContext = cache.GetDisciplineTypes();
             disciplineTypeDbContext = Sort_Search(disciplineTypeDbContext, sortOrder, disciplineType.TypeOfDiscipline ?? "");
             // Разбиение на страницы
             var count = disciplineTypeDbContext.Count();
@@ -60,13 +57,15 @@ namespace Study.Controllers
         // GET: DisciplineTypes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (id == null || _context.DisciplineTypes == null)
             {
                 return NotFound();
             }
 
-            var disciplineType = await _context.DisciplineTypes
-                .FirstOrDefaultAsync(m => m.DisciplineTypeId == id);
+            var disciplineType = cache.GetDisciplineTypes()
+                .FirstOrDefault(m => m.DisciplineTypeId == id);
             if (disciplineType == null)
             {
                 return NotFound();
@@ -88,10 +87,14 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DisciplineTypeId,TypeOfDiscipline")] DisciplineType disciplineType)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(disciplineType);
                 await _context.SaveChangesAsync();
+                cache.SetDisciplineTypes();
+
                 return RedirectToAction(nameof(Index));
             }
             return View(disciplineType);
@@ -100,13 +103,16 @@ namespace Study.Controllers
         // GET: DisciplineTypes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (id == null || _context.DisciplineTypes == null)
             {
                 return NotFound();
             }
 
-            var disciplineType = await _context.DisciplineTypes.FindAsync(id);
-            if (disciplineType == null)
+
+            var disciplineType = cache.GetDisciplineTypes()
+                .FirstOrDefault(m => m.DisciplineTypeId == id); if (disciplineType == null)
             {
                 return NotFound();
             }
@@ -120,6 +126,8 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("DisciplineTypeId,TypeOfDiscipline")] DisciplineType disciplineType)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (id != disciplineType.DisciplineTypeId)
             {
                 return NotFound();
@@ -131,6 +139,9 @@ namespace Study.Controllers
                 {
                     _context.Update(disciplineType);
                     await _context.SaveChangesAsync();
+                    cache.SetDisciplineTypes();
+                    var casheL = HttpContext.RequestServices.GetService<LessonService>();
+                    casheL.SetLessons();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -151,13 +162,16 @@ namespace Study.Controllers
         // GET: DisciplineTypes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (id == null || _context.DisciplineTypes == null)
             {
                 return NotFound();
             }
 
-            var disciplineType = await _context.DisciplineTypes
-                .FirstOrDefaultAsync(m => m.DisciplineTypeId == id);
+
+            var disciplineType = cache.GetDisciplineTypes()
+                .FirstOrDefault(m => m.DisciplineTypeId == id);
             if (disciplineType == null)
             {
                 return NotFound();
@@ -171,12 +185,15 @@ namespace Study.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetService<DisciplineTypeService>();
+
             if (_context.DisciplineTypes == null)
             {
                 return Problem("Entity set 'LessonsDbContext.DisciplineTypes'  is null.");
             }
-            var disciplineType = await _context.DisciplineTypes.Include(c => c.Lessons).FirstOrDefaultAsync(c => c.DisciplineTypeId == id);
-            if (disciplineType != null)
+
+            var disciplineType = cache.GetDisciplineTypes()
+                .FirstOrDefault(m => m.DisciplineTypeId == id); if (disciplineType != null)
             {
                 _context.DisciplineTypes.Remove(disciplineType);
                 _context.Lessons.RemoveRange(disciplineType.Lessons);
@@ -184,6 +201,9 @@ namespace Study.Controllers
             }
 
             await _context.SaveChangesAsync();
+            cache.SetDisciplineTypes();
+            var casheL = HttpContext.RequestServices.GetService<LessonService>();
+            casheL.SetLessons();
             return RedirectToAction(nameof(Index));
         }
 
@@ -191,7 +211,7 @@ namespace Study.Controllers
         {
           return (_context.DisciplineTypes?.Any(e => e.DisciplineTypeId == id)).GetValueOrDefault();
         }
-        private IQueryable<DisciplineType> Sort_Search(IQueryable<DisciplineType> disciplineTypes, SortState sortOrder, string searchDisciplineType)
+        private IEnumerable<DisciplineType> Sort_Search(IEnumerable<DisciplineType> disciplineTypes, SortState sortOrder, string searchDisciplineType)
         {
             switch (sortOrder)
             {

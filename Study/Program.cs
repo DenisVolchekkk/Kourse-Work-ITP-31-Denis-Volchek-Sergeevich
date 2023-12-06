@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Study.Services.Email;
 using Microsoft.EntityFrameworkCore;
-using Study.Data;
-using Study.Models;
+using Univercity.Persistence;
+using Univercity.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Study.Middleware;
-using Microsoft.Extensions.Hosting;
 using Study.Services;
 
 
@@ -24,6 +21,8 @@ namespace Study
 
       
             builder.Services.AddDbContext<LessonsDbContext>(options => options.UseSqlServer(connection));
+            builder.Services.AddMemoryCache();
+
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
@@ -32,9 +31,17 @@ namespace Study
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultUI()
                     .AddDefaultTokenProviders();
-            builder.Services.AddMemoryCache();
+
              
             builder.Services.AddTransient<LessonService>();
+            builder.Services.AddTransient<StudentsGroupService>();
+            builder.Services.AddTransient<FacilityService>();
+            builder.Services.AddTransient<ClassroomService>();
+            builder.Services.AddTransient<DisciplineService>();
+            builder.Services.AddTransient<DisciplineTypeService>();
+            builder.Services.AddTransient<TeacherService>();
+            builder.Services.AddTransient<LessonsTimeService>();
+
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
@@ -48,7 +55,6 @@ namespace Study
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-
             //builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddControllersWithViews(options => {
                 options.CacheProfiles.Add("ModelCache",

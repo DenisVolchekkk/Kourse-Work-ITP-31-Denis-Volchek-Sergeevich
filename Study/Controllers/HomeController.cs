@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Study.Models;
+using Univercity.Domain;
 using System.Diagnostics;
 
 namespace Study.Controllers
